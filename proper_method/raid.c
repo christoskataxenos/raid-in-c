@@ -1,159 +1,144 @@
 #include "raid.h"
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-/* Δομή για την κατάσταση της συστοιχίας */
-typedef struct {
-    int level;
-    int disk_count;
-    int is_failed[MAX_DISKS];
-} RaidConfig;
-
-static RaidConfig config;
-
 /*
  * raid_init
- * Ανοίγει τους δίσκους και μηδενίζει τις καταστάσεις αποτυχίας.
  */
-int raid_init(int level, int disk_count) {
-    int i;
-    if (disk_count < 2 || disk_count > MAX_DISKS) return 0;
-    if (level != 0 && level != 1 && level != 5) return 0;
-    
-    config.level = level;
-    config.disk_count = disk_count;
-    
-    for (i = 0; i < disk_count; i++) {
-        /* Ανοίγουμε τον δίσκο σε r+b (read/write binary) */
-        if (!disk_open(i, "r+b")) {
-            /* Αν δεν υπάρχει, τον δημιουργούμε (w+b) */
-            if (!disk_open(i, "w+b")) return 0;
-        }
-        config.is_failed[i] = 0;
+int raid_init(const char* raidx, int n, int size) {
+    for (int i = 0; i < n; i++) {
+        if (!disk_open(raidx, i, "w+")) return 0;
+        disk_init(i, size);
     }
-    
     return 1;
 }
 
-/* 
- * raid_fail_disk
- * Προσομοίωση βλάβης. Κλείνουμε το αρχείο και μαρκάρουμε τον δίσκο.
+/*
+ * raid_write_bit
  */
-void raid_fail_disk(int disk_id) {
-    if (disk_id >= 0 && disk_id < config.disk_count) {
-        config.is_failed[disk_id] = 1;
-        disk_close(disk_id);
+int raid_write_bit(const char* raidx, int pos, int n, int blocksize, char bit, int is_update) {
+    double cap_multiplier = (strcmp(raidx, "RAID_1") == 0) ? 1.0 : 
+                            (strcmp(raidx, "RAID_1E") == 0) ? n / 2.0 : (n - 1.0);
+    
+    int bit_val = bit - '0';
+    
+    if (strcmp(raidx, "RAID1") == 0) {
+        for (int i = 0; i < n; i++) disk_write_bit(i, pos, bit);
+        if (is_update) printf(" - Bit %d: [RAID1] Mirrored to all disks. OK\n", pos);
+    } 
+    else if (strcmp(raidx, "RAID1E") == 0) {
+        int d = pos % n;
+        int m = (d + 1) % n;
+        disk_write_bit(d, pos, bit);
+        disk_write_bit(m, pos, bit);
+        if (is_update) printf(" - Bit %d: [RAID1E] Mirrored to Disk %d and %d. OK\n", pos, d, m);
     }
-}
-
-/* 
- * raid_write_block
- * Υλοποίηση για RAID 0, 1, 5
- */
-int raid_write_block(int logical_block_id, const byte* data) {
-    int i, p_disk, target_disk, stripe_id, block_in_stripe;
-    byte parity[BLOCK_SIZE];
-    byte temp[BLOCK_SIZE];
-    
-    if (config.disk_count < 2) return 0; /* Ασφάλεια: Απαιτούνται τουλάχιστον 2 δίσκοι */
-    
-    if (config.level == 0) {
-        /* RAID 0: Απλό Striping */
-        target_disk = logical_block_id % config.disk_count;
-        return disk_write_block(target_disk, logical_block_id / config.disk_count, data);
-    } 
-    else if (config.level == 1) {
-        /* RAID 1: Mirroring */
-        int res1 = disk_write_block(0, logical_block_id, data);
-        int res2 = disk_write_block(1, logical_block_id, data);
-        return (res1 && res2);
-    } 
-    else if (config.level == 5) {
-        /* RAID 5: Distributed Parity (Left Symmetric) */
-        stripe_id = logical_block_id / (config.disk_count - 1);
-        block_in_stripe = logical_block_id % (config.disk_count - 1);
-        p_disk = stripe_id % config.disk_count;
+    else if (strcmp(raidx, "RAID4") == 0) {
+        int target = (pos / blocksize) % (n-1);
+        int stripe = pos / (blocksize * (n-1));
+        int local = stripe * blocksize + (pos % blocksize);
+        int parity_disk = n - 1;
         
-        target_disk = (block_in_stripe >= p_disk) ? block_in_stripe + 1 : block_in_stripe;
+        int old_bit = disk_read_bit(target, local) - '0';
+        int old_p = disk_read_bit(parity_disk, local) - '0';
+        int new_p = old_p ^ old_bit ^ bit_val;
         
-        /* Εγγραφή των δεδομένων */
-        if (!disk_write_block(target_disk, stripe_id, data)) return 0;
+        disk_write_bit(target, local, bit);
+        disk_write_bit(parity_disk, local, new_p + '0');
         
-        /* Επανυπολογισμός Parity για το stripe */
-        memset(parity, 0, BLOCK_SIZE);
-        for (i = 0; i < config.disk_count; i++) {
-            if (i == p_disk) continue;
-            if (disk_read_block(i, stripe_id, temp)) {
-                for (int b = 0; b < BLOCK_SIZE; b++) parity[b] ^= temp[b];
-            }
-        }
-        return disk_write_block(p_disk, stripe_id, parity);
-    }
-    return 0;
-}
-
-/* 
- * raid_read_block
- * Υλοποίηση για RAID 0, 1, 5 (με υποστήριξη για 1 αποτυχία στα RAID 1/5)
- */
-int raid_read_block(int logical_block_id, byte* buffer) {
-    int i, p_disk, target_disk, stripe_id, block_in_stripe;
-    byte temp[BLOCK_SIZE];
-    
-    if (config.disk_count < 2) return 0; /* Ασφάλεια: Απαιτούνται τουλάχιστον 2 δίσκοι */
-    
-    if (config.level == 0) {
-        target_disk = logical_block_id % config.disk_count;
-        return disk_read_block(target_disk, logical_block_id / config.disk_count, buffer);
-    } 
-    else if (config.level == 1) {
-        if (!config.is_failed[0]) return disk_read_block(0, logical_block_id, buffer);
-        if (!config.is_failed[1]) return disk_read_block(1, logical_block_id, buffer);
-        return 0;
-    } 
-    else if (config.level == 5) {
-        stripe_id = logical_block_id / (config.disk_count - 1);
-        block_in_stripe = logical_block_id % (config.disk_count - 1);
-        p_disk = stripe_id % config.disk_count;
-        target_disk = (block_in_stripe >= p_disk) ? block_in_stripe + 1 : block_in_stripe;
-        
-        if (!config.is_failed[target_disk]) {
-            return disk_read_block(target_disk, stripe_id, buffer);
-        } else {
-            /* Αν ο δίσκος απέτυχε, ανακατασκευή από τους υπόλοιπους (XOR) */
-            memset(buffer, 0, BLOCK_SIZE);
-            for (i = 0; i < config.disk_count; i++) {
-                if (i == target_disk) continue;
-                if (!disk_read_block(i, stripe_id, temp)) return 0;
-                for (int b = 0; b < BLOCK_SIZE; b++) buffer[b] ^= temp[b];
-            }
-            return 1;
+        if (is_update) {
+            printf(" - Bit %d: [RAID4] Disk %d changed %d->%d. Parity (Disk %d) %d->%d. (XOR Logic: %d ^ %d ^ %d = %d)\n", 
+                   pos, target, old_bit, bit_val, parity_disk, old_p, new_p, old_p, old_bit, bit_val, new_p);
         }
     }
-    return 0;
+    else if (strcmp(raidx, "RAID5") == 0) {
+        int stripe = pos / (blocksize * (n-1));
+        int b_in_s = (pos % (blocksize * (n-1))) / blocksize;
+        int p_disk = stripe % n;
+        int target = (b_in_s >= p_disk) ? b_in_s + 1 : b_in_s;
+        int local = stripe * blocksize + (pos % blocksize);
+        
+        int old_bit = disk_read_bit(target, local) - '0';
+        int old_p = disk_read_bit(p_disk, local) - '0';
+        int new_p = old_p ^ old_bit ^ bit_val;
+        
+        disk_write_bit(target, local, bit);
+        disk_write_bit(p_disk, local, new_p + '0');
+        
+        if (is_update) {
+            printf(" - Bit %d: [RAID5] Disk %d changed %d->%d. Parity (Disk %d) %d->%d. (XOR Logic: %d ^ %d ^ %d = %d)\n", 
+                   pos, target, old_bit, bit_val, p_disk, old_p, new_p, old_p, old_bit, bit_val, new_p);
+        }
+    }
+    return 1;
 }
 
-/* 
- * raid_recover_disk (πρόχειρη υλοποίηση για RAID 1/5)
+/*
+ * raid_read_bit
  */
-int raid_recover_disk(int disk_id) {
-    /* Εδώ κανονικά θα έπρεπε να διατρέξει όλο τον δίσκο και να ανακατασκευάσει κάθε block */
-    /* Για την εργασία, απλά τον ξανανοίγουμε αν είναι εφικτό */
-    if (disk_open(disk_id, "r+b")) {
-        config.is_failed[disk_id] = 0;
-        return 1;
+char raid_read_bit(const char* raidx, int pos, int n, int blocksize) {
+    if (strcmp(raidx, "RAID1") == 0) return disk_read_bit(0, pos);
+    if (strcmp(raidx, "RAID1E") == 0) return disk_read_bit(pos % n, pos);
+    
+    if (strcmp(raidx, "RAID4") == 0) {
+        int target = (pos / blocksize) % (n-1);
+        int stripe = pos / (blocksize * (n-1));
+        int local = stripe * blocksize + (pos % blocksize);
+        return disk_read_bit(target, local);
     }
-    return 0;
+    
+    if (strcmp(raidx, "RAID5") == 0) {
+        int stripe = pos / (blocksize * (n-1));
+        int b_in_s = (pos % (blocksize * (n-1))) / blocksize;
+        int p_disk = stripe % n;
+        int target = (b_in_s >= p_disk) ? b_in_s + 1 : b_in_s;
+        int local = stripe * blocksize + (pos % blocksize);
+        return disk_read_bit(target, local);
+    }
+    return '0';
 }
 
-void raid_shutdown() {
-    for (int i = 0; i < config.disk_count; i++) disk_close(i);
+/*
+ * raid_recover
+ */
+void raid_recover(const char* raidx, int failed_id, int n, int size) {
+    disk_open(raidx, failed_id, "w+");
+    for (int i = 0; i < size; i++) {
+        if (strcmp(raidx, "RAID1") == 0) {
+            int src = (failed_id == 0) ? 1 : 0;
+            disk_write_bit(failed_id, i, disk_read_bit(src, i));
+        }
+        else if (strcmp(raidx, "RAID1E") == 0) {
+            int src = (failed_id + 1) % n;
+            int bit = disk_read_bit(src, i);
+            if (bit == EOF) bit = disk_read_bit((failed_id + n - 1) % n, i);
+            disk_write_bit(failed_id, i, bit);
+        }
+        else { /* RAID 4/5 XOR */
+            int recovered = 0;
+            for (int k = 0; k < n; k++) {
+                if (k == failed_id) continue;
+                recovered ^= (disk_read_bit(k, i) - '0');
+            }
+            disk_write_bit(failed_id, i, recovered + '0');
+        }
+    }
 }
 
-void raid_print_status() {
-    printf("\n--- RAID STATUS (Level %d) ---\n", config.level);
-    for (int i = 0; i < config.disk_count; i++) {
-        printf("Disk %d: %s\n", i, config.is_failed[i] ? "[FAILED]" : "[ONLINE]");
+/*
+ * raid_compare
+ */
+void raid_compare(const char* file1, const char* file2) {
+    FILE* f1 = fopen(file1, "r");
+    FILE* f2 = fopen(file2, "r");
+    int c1, c2, match = 1;
+    if (!f1 || !f2) {printf("[!] Error comparing.\n"); return;}
+    while ((c1 = fgetc(f1)) != EOF) {
+        c2 = fgetc(f2);
+        if (c1 != c2) {match = 0; break;}
     }
-    printf("---------------------------\n");
+    if (match) printf(">> 100%% similarity\n");
+    else printf(">> Files do not match!\n");
+    fclose(f1); fclose(f2);
 }

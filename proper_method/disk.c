@@ -1,45 +1,29 @@
 #include "disk.h"
 #include <string.h>
+#include <stdlib.h>
 
 /* Στατικός πίνακας για τα αρχεία των δίσκων */
 static FILE* disk_handles[MAX_DISKS] = {NULL};
 
 /*
- * disk_is_ready
- * Σύντομος έλεγχος αν ο disk_id είναι έγκυρος και ο δίσκος ανοιχτός.
- */
-int disk_is_ready(int disk_id) {
-    if (disk_id < 0 || disk_id >= MAX_DISKS) return 0;
-    return (disk_handles[disk_id] != NULL);
-}
-
-/*
  * disk_open
- * Δημιουργεί το όνομα αρχείου (π.χ. disk0.bin) και το ανοίγει.
  */
-int disk_open(int disk_id, const char* mode) {
-    char filename[32];
+int disk_open(const char* raidx, int disk_id, const char* mode) {
+    char filename[64];
     if (disk_id < 0 || disk_id >= MAX_DISKS) return 0;
     
-    /* 
-     * Χρήση sprintf για συμβατότητα με παλαιότερους compilers (Windows 2000). 
-     * Το filename[32] είναι υπεραρκετό για το "disk%d.bin".
-     */
-    sprintf(filename, "disk%d.bin", disk_id);
+    sprintf(filename, "%s_%d.txt", raidx, disk_id);
     
-    /* Αν ο δίσκος ήταν ήδη ανοιχτός, τον κλείνουμε */
     if (disk_handles[disk_id]) {
         fclose(disk_handles[disk_id]);
     }
     
     disk_handles[disk_id] = fopen(filename, mode);
-    
     return (disk_handles[disk_id] != NULL);
 }
 
 /*
  * disk_close
- * Κλείνει τον δίσκο αν είναι ανοιχτός.
  */
 void disk_close(int disk_id) {
     if (disk_id >= 0 && disk_id < MAX_DISKS && disk_handles[disk_id]) {
@@ -49,38 +33,43 @@ void disk_close(int disk_id) {
 }
 
 /*
- * disk_read_block
- * Μετακινεί τον κέρσορα (fseek) στη σωστή θέση και διαβάζει 512 bytes.
+ * disk_read_bit
  */
-int disk_read_block(int disk_id, int block_id, byte* buffer) {
-    if (!disk_is_ready(disk_id)) return 0;
-    
-    /* fseek στην αρχή του επιθυμητού block */
-    if (fseek(disk_handles[disk_id], (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
-        return 0;
-    }
-    
-    return (fread(buffer, 1, BLOCK_SIZE, disk_handles[disk_id]) == BLOCK_SIZE);
+int disk_read_bit(int disk_id, int pos) {
+    if (disk_id < 0 || disk_id >= MAX_DISKS || !disk_handles[disk_id]) return -1;
+    fseek(disk_handles[disk_id], pos, SEEK_SET);
+    return fgetc(disk_handles[disk_id]);
 }
 
 /*
- * disk_write_block
- * Μετακινεί τον κέρσορα και γράφει 512 bytes.
+ * disk_write_bit
  */
-int disk_write_block(int disk_id, int block_id, const byte* buffer) {
-    if (!disk_is_ready(disk_id)) return 0;
-    
-    /* fseek στην αρχή του επιθυμητού block */
-    if (fseek(disk_handles[disk_id], (long)block_id * BLOCK_SIZE, SEEK_SET) != 0) {
-        return 0;
-    }
-    
-    if (fwrite(buffer, 1, BLOCK_SIZE, disk_handles[disk_id]) != BLOCK_SIZE) {
-        return 0;
-    }
-    
-    /* fflush για να είμαστε σίγουροι ότι τα δεδομένα γράφτηκαν στο αρχείο */
+int disk_write_bit(int disk_id, int pos, char bit) {
+    if (disk_id < 0 || disk_id >= MAX_DISKS || !disk_handles[disk_id]) return 0;
+    fseek(disk_handles[disk_id], pos, SEEK_SET);
+    fputc(bit, disk_handles[disk_id]);
     fflush(disk_handles[disk_id]);
-    
     return 1;
+}
+
+/*
+ * disk_init
+ */
+int disk_init(int disk_id, int size) {
+    if (disk_id < 0 || disk_id >= MAX_DISKS || !disk_handles[disk_id]) return 0;
+    fseek(disk_handles[disk_id], 0, SEEK_SET);
+    for (int i = 0; i < size; i++) {
+        fputc('0', disk_handles[disk_id]);
+    }
+    return 1;
+}
+
+/*
+ * disk_remove
+ */
+void disk_remove(const char* raidx, int disk_id) {
+    char filename[64];
+    sprintf(filename, "%s_%d.txt", raidx, disk_id);
+    disk_close(disk_id);
+    remove(filename);
 }

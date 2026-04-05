@@ -4,16 +4,13 @@
 #include <stdio.h>
 
 /* Μεταβλητές & Σταθερές */
-#define BLOCK_SIZE 512
-#define MAX_DISKS 10
-
-typedef unsigned char byte;
+#define MAX_DISKS 20
 
 /* 
- * Ανοίγει ένα αρχείο δίσκου (π.χ. disk0.bin) 
- * Επιστρέφει 1 για επιτυχία, 0 για αποτυχία.
+ * Ανοίγει ένα αρχείο δίσκου (π.χ. RAIDX_no.txt) 
+ * Χρησιμοποιείται για την προσομοίωση του δίσκου ως αρχείο κειμένου.
  */
-int disk_open(int disk_id, const char* mode);
+int disk_open(const char* raidx, int disk_id, const char* mode);
 
 /* 
  * Κλείνει ένα αρχείο δίσκου αν είναι ανοιχτό.
@@ -21,20 +18,23 @@ int disk_open(int disk_id, const char* mode);
 void disk_close(int disk_id);
 
 /* 
- * Διαβάζει ένα block 512 bytes από τη θέση block_id στον buffer.
- * Επιστρέφει 1 για επιτυχία, 0 για αποτυχία.
+ * Διαβάζει ένα bit (χαρακτήρα '0' ή '1') από τη θέση pos.
  */
-int disk_read_block(int disk_id, int block_id, byte* buffer);
+int disk_read_bit(int disk_id, int pos);
 
 /* 
- * Γράφει ένα block 512 bytes από τον buffer στη θέση block_id.
- * Επιστρέφει 1 για επιτυχία, 0 για αποτυχία.
+ * Γράφει ένα bit (χαρακτήρα '0' ή '1') στη θέση pos.
  */
-int disk_write_block(int disk_id, int block_id, const byte* buffer);
+int disk_write_bit(int disk_id, int pos, char bit);
 
 /* 
- * Ελέγχει αν ο δίσκος είναι ανοιχτός/διαθέσιμος.
+ * Αρχικοποιεί τον δίσκο με '0' μέχρι το μέγεθος size.
  */
-int disk_is_ready(int disk_id);
+int disk_init(int disk_id, int size);
+
+/* 
+ * Διαγράφει το αρχείο του δίσκου (Προσομοίωση σφάλματος).
+ */
+void disk_remove(const char* raidx, int disk_id);
 
 #endif

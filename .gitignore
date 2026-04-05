@@ -6,6 +6,7 @@
 *.a
 *.out
 proper_method/raid
+akadimaiki_method/raid_simple
 
 # Debug symbols
 *.pdb
@@ -21,3 +22,16 @@ proper_method/raid
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# User Exclusions
+lambros/
+*.pdf
+*.rar
+RAID*.txt
+akadimaiki_method/RAID*.txt
+input_and_update_files/
+input_and_update_files.rar
+input.txt
+update.txt
+backup.txt
+allData.txt

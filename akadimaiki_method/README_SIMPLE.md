@@ -1,33 +1,43 @@
-# RAID Noob Method (Single-file)
+# RAID Simulator - Simple Method (Single File)
 
-Αυτή η έκδοση είναι μια απλοποιημένη υλοποίηση του RAID Storage Simulator σε ένα μόνο αρχείο (`raid_simple.c`). 
-
-## 🐣 ΓΙΑΤΙ ΝΑ ΧΡΗΣΙΜΟΠΟΙΗΘΕΙ;
-
-- **Απλή μεταγραφή**: Ιδανικό για να δείξεις σε κάποιον πώς λειτουργεί το RAID χωρίς να τον μπερδέψεις με πολλά αρχεία.
-- **Εύκολο Reading**: Όλη η λογική (XOR, Reading, Writing) είναι συγκεντρωμένη για γρήγορη εύρεση.
-- **Μικρή Πολυπλοκότητα**: Χωρίς callbacks ή πολύπλοκες δομές δεδομένων.
-
-## 🚀 ΟΔΗΓΙΕΣ ΜΕΤΑΓΛΩΤΤΙΣΗΣ (Compilation)
-
-### Στα Windows (PowerShell/CMD):
-```cmd
-gcc raid_simple.c -o raid_simple.exe
-./raid_simple.exe
-```
-
-### Στο WSL / Linux:
-```bash
-gcc raid_simple.c -o raid_simple
-./raid_simple
-```
-
-## 📋 ΛΕΙΤΟΥΡΓΙΕΣ (Features)
-
-1. **All-In-One**: Το Logic, το UI και οι πράξεις στους δίσκους είναι στο ίδιο αρχείο.
-2. **Numbered Menu**: Αριθμημένο μενού (1-7) για εύκολη χρήση.
-3. **RAID Levels**: Υποστηρίζει κανονικά RAID 0, 1 και 5.
-4. **Data Recovery**: Κατά την ανάγνωση (`READ`) στο RAID 5, τα δεδομένα ανακατασκευάζονται αν ένας δίσκος είναι `FAILED`.
+Αυτός ο φάκελος περιέχει την υλοποίηση του προσομοιωτή RAID σε ένα αρχείο (`raid_simple.c`), σχεδιασμένο για ακαδημαϊκή παρουσίαση.
 
 ---
-*Σημείωση: Αυτή η έκδοση δεν διαθέτει την προχωρημένη διαχείριση backup του RESET cmd (πρέπει να καθαριστούν οι δίσκοι χειροκίνητα αν χρειαστεί).*
+
+## 🛠️ Μεταγλώττιση (Compilation)
+
+### 💻 Windows (PowerShell)
+```powershell
+gcc raid_simple.c -o ergasia1.exe
+```
+
+### 🐧 Linux / WSL2
+```bash
+gcc raid_simple.c -o ergasia1.exe
+```
+
+---
+
+## 🚀 Εκτέλεση (Execution)
+
+### 💻 Windows
+`./ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData`
+
+**Παράδειγμα**:
+`./ergasia1.exe RAID4 20 5 3 ../input_and_update_files/input1.txt ../input_and_update_files/update1.txt ../backup.txt ../allData.txt`
+
+### 🐧 Linux / WSL2
+`./ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData`
+
+---
+
+## 🔍 Χαρακτηριστικά
+-   **RAID 1, 1E, 4, 5**: Πλήρης υποστήριξη.
+-   **Bit-Level Parsing**: Διαβάζει '0'/'1' χαρακτήρες.
+-   **Console Logs**: Εμφανίζει λεπτομερείς υπολογισμούς XOR κατά το update και την ανάκτηση (Recovery).
+-   **8-Step Sequence**: Ακολουθεί πιστά τη ροή εργασίας της άσκησης.
+
+---
+
+## ⚠️ Προσοχή
+Αν τα Windows μπλοκάρουν το `.exe` με μήνυμα **"Device Guard policy"**, μεταφερθείτε στο **WSL2** για την εκτέλεση.

@@ -1,34 +1,77 @@
-# Εργασία RAID Simulator
+# RAID Simulator Project (C)
 
-Αυτή η εφαρμογή προσομοιώνει τη λειτουργία των RAID 0, 1 και 5. 
+Ένα ολοκληρωμένο σύστημα προσομοίωσης επιπέδων RAID (1, 1E, 4, 5) το οποίο ακολουθεί αυστηρά τις ακαδημαϊκές προδιαγραφές για προσομοίωση σε επίπεδο bit-char.
 
-## Πώς είναι οργανωμένο το project
+---
 
-Έχω φτιάξει δύο τρόπους για να τρέξει:
+## 📂 Δομή Έργου
 
-1.  **`proper_method/`**: Εδώ είναι ο "κανονικός" κώδικας, σπασμένος σε πολλά αρχεία (`.c` και `.h`). Είναι πιο σωστά δομημένος (Modular).
-2.  **`raid_simple.c`**: Αυτό είναι ένα **μόνο αρχείο** που τα έχει όλα μέσα. Αν θέλεις κάτι γρήγορο για να το τρέξεις και να δεις πώς δουλεύει, δες αυτό.
+-   **`akadimaiki_method/`**: Υλοποίηση σε ένα αρχείο (`raid_simple.c`), ιδανική για απλή παρουσίαση.
+-   **`proper_method/`**: Σπονδυλωτή (Modular) υλοποίηση με ξεχωριστά αρχεία (`main.c`, `raid.c`, `disk.c`) για πιο επαγγελματική προσέγγιση.
+-   **`input_and_update_files/`**: Φάκελος με δοκιμαστικά αρχεία εισόδου και αλλαγών.
 
-## Πώς το τρέχω;
+---
 
-### Η απλή λύση (single file):
-```bash
-gcc raid_simple.c -o raid_simple
-./raid_simple
+## 🚀 Οδηγίες Μεταγλώττισης (Compilation)
+
+### 💻 Windows (PowerShell / Command Prompt)
+Προϋπόθεση: Εγκατεστημένο το GCC (π.χ. μέσω MinGW ή MSYS2).
+
+```powershell
+# Για την απλή μέθοδο:
+cd akadimaiki_method
+gcc raid_simple.c -o ergasia1.exe
+
+# Για την σπονδυλωτή μέθοδο:
+cd proper_method
+gcc main.c raid.c disk.c -o ergasia1.exe
 ```
 
-### Η κανονική λύση (πολλά αρχεία):
+### 🐧 Linux / WSL2 (Ubuntu / Bash)
 ```bash
+# Για την απλή μέθοδο:
+cd akadimaiki_method
+gcc raid_simple.c -o ergasia1.exe
+
+# Για την σπονδυλωτή μέθοδο:
 cd proper_method
-gcc main.c shell.c raid.c disk.c env.c -o raid
-./raid
+gcc main.c raid.c disk.c -o ergasia1.exe
 ```
 
 ---
 
-## Τι κάνει το πρόγραμμα;
-- **RAID 0**: Striping (μοιράζει τα δεδομένα).
-- **RAID 1**: Mirroring (ίδια δεδομένα παντού).
-- **RAID 5**: Με Parity (XOR). Αν "σκάσει" ένας δίσκος, μπορείς να διαβάσεις τα δεδομένα κανονικά γιατί τα ξαναφτιάχνει από τους άλλους.
+## 🛠️ Οδηγίες Εκτέλεσης (Execution)
 
-*Η εντολή `RESET` κάνει backup τους δίσκους στον φάκελο `arxikoi_diskoi` για να ξεκινάτε από την αρχή.*
+### 💻 Windows
+```powershell
+./run_all_tests.bat
+```
+
+### 🐧 Linux / WSL2
+```bash
+chmod +x run_all_tests.sh
+./run_all_tests.sh
+```
+
+---
+
+## 📈 Ροή Εργασίας 8-Βημάτων
+Το πρόγραμμα εκτελεί αυτόματα τα εξής:
+1.  **Init**: Αρχικοποίηση δίσκων με '0'.
+2.  **Load**: Διανομή δεδομένων από το `inputFile`.
+3.  **Backup**: Δημιουργία αρχείου αναφοράς `backup.txt`.
+4.  **Update**: Εφαρμογή αλλαγών από το `updates.txt` με υπολογισμό XOR.
+5.  **Fail**: Προσομοίωση καταστροφής ενός δίσκου (UserInput).
+6.  **Recover**: Ανάκτηση των χαμένων δεδομένων.
+7.  **Reconstruct**: Επανασύνθεση όλων των δεδομένων στο `allData.txt`.
+8.  **Compare**: Έλεγχος για "100% similarity" έναντι του backup.
+
+---
+
+## ⚠️ Αντιμετώπιση Προβλημάτων
+
+> [!WARNING]
+> **Windows Device Guard Policy**: Αν τα Windows μπλοκάρουν την εκτέλεση του `.exe` ("blocked by organization's policy"), χρησιμοποιήστε το **WSL2 (Linux Terminal)** για να κάνετε compile και να τρέξετε τα αρχεία εκεί. Το Linux δεν επηρεάζεται από αυτή την πολιτική των Windows.
+
+> [!IMPORTANT]
+> **Paths**: Σε Windows χρησιμοποιήστε backslash (`\`), ενώ σε Linux/WSL χρησιμοποιήστε forward slash (`/`). Τα παρεχόμενα scripts (`.bat` / `.sh`) το χειρίζονται αυτόματα.

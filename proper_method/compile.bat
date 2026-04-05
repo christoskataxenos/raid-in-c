@@ -3,11 +3,12 @@ echo.
 echo [RAID COMPILER] Compiling project files...
 echo.
 
-gcc main.c shell.c raid.c disk.c env.c -o raid.exe
+gcc main.c raid.c disk.c -o ergasia1.exe
 
 if %ERRORLEVEL% EQU 0 (
     echo.
-    echo [SUCCESS] Compilation complete. Execute 'raid.exe' to begin.
+    echo [SUCCESS] Compilation complete. 
+    echo Usage: ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData
     echo.
 ) else (
     echo.
