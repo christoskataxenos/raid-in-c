@@ -1,0 +1,23 @@
+# Binaries
+*.exe
+*.o
+*.obj
+*.lib
+*.a
+*.out
+proper_method/raid
+
+# Debug symbols
+*.pdb
+*.idb
+
+# VS Code / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
