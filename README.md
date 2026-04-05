@@ -1,77 +1,58 @@
 # RAID Simulator Project (C)
 
-Ένα ολοκληρωμένο σύστημα προσομοίωσης επιπέδων RAID (1, 1E, 4, 5) το οποίο ακολουθεί αυστηρά τις ακαδημαϊκές προδιαγραφές για προσομοίωση σε επίπεδο bit-char.
+A comprehensive RAID level simulation system (1, 1E, 4, 5) that strictly follows academic specifications for bit-char level simulation. Supporting both single-file and modular implementations.
 
 ---
 
-## 📂 Δομή Έργου
+## 📂 Project Structure
 
--   **`akadimaiki_method/`**: Υλοποίηση σε ένα αρχείο (`raid_simple.c`), ιδανική για απλή παρουσίαση.
--   **`proper_method/`**: Σπονδυλωτή (Modular) υλοποίηση με ξεχωριστά αρχεία (`main.c`, `raid.c`, `disk.c`) για πιο επαγγελματική προσέγγιση.
--   **`input_and_update_files/`**: Φάκελος με δοκιμαστικά αρχεία εισόδου και αλλαγών.
-
----
-
-## 🚀 Οδηγίες Μεταγλώττισης (Compilation)
-
-### 💻 Windows (PowerShell / Command Prompt)
-Προϋπόθεση: Εγκατεστημένο το GCC (π.χ. μέσω MinGW ή MSYS2).
-
-```powershell
-# Για την απλή μέθοδο:
-cd akadimaiki_method
-gcc raid_simple.c -o ergasia1.exe
-
-# Για την σπονδυλωτή μέθοδο:
-cd proper_method
-gcc main.c raid.c disk.c -o ergasia1.exe
-```
-
-### 🐧 Linux / WSL2 (Ubuntu / Bash)
-```bash
-# Για την απλή μέθοδο:
-cd akadimaiki_method
-gcc raid_simple.c -o ergasia1.exe
-
-# Για την σπονδυλωτή μέθοδο:
-cd proper_method
-gcc main.c raid.c disk.c -o ergasia1.exe
-```
+-   **`akadimaiki_method/`**: Clean single-file implementation (`raid_simple.c`), ideal for academic submission.
+-   **`proper_method/`**: Professional modular implementation with separate files (`main.c`, `raid.c`, `disk.c`) for superior architecture.
+-   **`input_and_update_files/`**: Test data containing initial bitstreams and delta updates.
 
 ---
 
-## 🛠️ Οδηγίες Εκτέλεσης (Execution)
+## 🚀 Smart Testing & Auto-Compile
+
+The project features a unified test suite that handles **Automatic Compilation** and allows you to **Select the Version** you want to test.
 
 ### 💻 Windows
 ```powershell
-./run_all_tests.bat
+.\run_all_tests.bat
 ```
+1. Run the script.
+2. Select `1` (Academic) or `2` (Proper).
+3. The script will automatically run `gcc` and start the 4 test scenarios.
 
 ### 🐧 Linux / WSL2
 ```bash
 chmod +x run_all_tests.sh
 ./run_all_tests.sh
 ```
+1. Run the bash script.
+2. Select your version.
+3. Review the automated bitwise reconstruction results.
 
 ---
 
-## 📈 Ροή Εργασίας 8-Βημάτων
-Το πρόγραμμα εκτελεί αυτόματα τα εξής:
-1.  **Init**: Αρχικοποίηση δίσκων με '0'.
-2.  **Load**: Διανομή δεδομένων από το `inputFile`.
-3.  **Backup**: Δημιουργία αρχείου αναφοράς `backup.txt`.
-4.  **Update**: Εφαρμογή αλλαγών από το `updates.txt` με υπολογισμό XOR.
-5.  **Fail**: Προσομοίωση καταστροφής ενός δίσκου (UserInput).
-6.  **Recover**: Ανάκτηση των χαμένων δεδομένων.
-7.  **Reconstruct**: Επανασύνθεση όλων των δεδομένων στο `allData.txt`.
-8.  **Compare**: Έλεγχος για "100% similarity" έναντι του backup.
+## 📈 8-Step Academic Workflow
+
+Both implementations strictly adhere to the required sequence:
+1.  **Init**: Disk allocation and zero-initialization.
+2.  **Load**: Bitwise data distribution from `inputFile`.
+3.  **Backup**: Persistence of the original bitstream for verification.
+4.  **Update**: Dynamic bit-flipping from `updates.txt` with parity synchronization.
+5.  **Fail**: Simulation of a hardware failure (Disk Removal).
+6.  **Recover**: Data restoration using Parity/Mirror logic.
+7.  **Reconstruct**: Global reassembly into a single `allData.txt` file.
+8.  **Compare**: Automated Audit for 100% bit-perfect similarity.
 
 ---
 
-## ⚠️ Αντιμετώπιση Προβλημάτων
-
-> [!WARNING]
-> **Windows Device Guard Policy**: Αν τα Windows μπλοκάρουν την εκτέλεση του `.exe` ("blocked by organization's policy"), χρησιμοποιήστε το **WSL2 (Linux Terminal)** για να κάνετε compile και να τρέξετε τα αρχεία εκεί. Το Linux δεν επηρεάζεται από αυτή την πολιτική των Windows.
+## ⚠️ Important Notes
 
 > [!IMPORTANT]
-> **Paths**: Σε Windows χρησιμοποιήστε backslash (`\`), ενώ σε Linux/WSL χρησιμοποιήστε forward slash (`/`). Τα παρεχόμενα scripts (`.bat` / `.sh`) το χειρίζονται αυτόματα.
+> **Dual-Mode Input**: Both versions support **Command-Line Arguments** (for automated testing) and an **Interactive Menu** (if run directly).
+
+> [!WARNING]
+> **Device Guard Policy**: If Windows blocks `.exe` files, use **WSL2** to compile and run. The automation scripts will work identically in a Linux environment.

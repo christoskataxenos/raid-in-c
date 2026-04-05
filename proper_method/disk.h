@@ -3,37 +3,37 @@
 
 #include <stdio.h>
 
-/* Μεταβλητές & Σταθερές */
+/* Constants */
 #define MAX_DISKS 20
 
-/* 
- * Ανοίγει ένα αρχείο δίσκου (π.χ. RAIDX_no.txt) 
- * Χρησιμοποιείται για την προσομοίωση του δίσκου ως αρχείο κειμένου.
+/**
+ * Open a disk file (e.g., RAIDX_no.txt) in the specified mode.
+ * Simulated disk files are stored as plain text.
  */
 int disk_open(const char* raidx, int disk_id, const char* mode);
 
-/* 
- * Κλείνει ένα αρχείο δίσκου αν είναι ανοιχτό.
+/**
+ * Close a disk file if it is open.
  */
 void disk_close(int disk_id);
 
-/* 
- * Διαβάζει ένα bit (χαρακτήρα '0' ή '1') από τη θέση pos.
+/**
+ * Read a bit (character '0' or '1') from the given position.
  */
 int disk_read_bit(int disk_id, int pos);
 
-/* 
- * Γράφει ένα bit (χαρακτήρα '0' ή '1') στη θέση pos.
+/**
+ * Write a bit (character '0' or '1') to the given position.
  */
 int disk_write_bit(int disk_id, int pos, char bit);
 
-/* 
- * Αρχικοποιεί τον δίσκο με '0' μέχρι το μέγεθος size.
+/**
+ * Initialize a disk file with '0' up to the given size.
  */
 int disk_init(int disk_id, int size);
 
-/* 
- * Διαγράφει το αρχείο του δίσκου (Προσομοίωση σφάλματος).
+/**
+ * Delete a disk file (simulating hardware failure).
  */
 void disk_remove(const char* raidx, int disk_id);
 

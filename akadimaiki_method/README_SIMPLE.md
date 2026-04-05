@@ -1,43 +1,38 @@
 # RAID Simulator - Simple Method (Single File)
 
-Αυτός ο φάκελος περιέχει την υλοποίηση του προσομοιωτή RAID σε ένα αρχείο (`raid_simple.c`), σχεδιασμένο για ακαδημαϊκή παρουσίαση.
+This folder contains the refined implementation of the RAID simulator in a single source file (`raid_simple.c`). It is designed for academic clarity while maintaining professional modular logic under the hood.
 
 ---
 
-## 🛠️ Μεταγλώττιση (Compilation)
+## 🛠️ Performance & Features
+-   **RAID 1, 1E, 4, 5**: Full bit-level support.
+-   **Dual-Mode Input**: Supports CLI arguments for automation or Interactive Prompts for manual use.
+-   **ANSI C Clean**: Compatible with a wide range of C compilers.
+-   **English Localization**: All UI strings and source comments are in English.
 
-### 💻 Windows (PowerShell)
+---
+
+## 🚀 Compilation & Execution
+
+### 💻 Manual Compilation
 ```powershell
 gcc raid_simple.c -o ergasia1.exe
 ```
 
-### 🐧 Linux / WSL2
-```bash
-gcc raid_simple.c -o ergasia1.exe
+### 🚀 Smart Execution
+The easiest way to test this version is via the **root** testing script:
+```powershell
+cd ..
+.\run_all_tests.bat
+# Then Select Option [1]
 ```
 
 ---
 
-## 🚀 Εκτέλεση (Execution)
-
-### 💻 Windows
-`./ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData`
-
-**Παράδειγμα**:
-`./ergasia1.exe RAID4 20 5 3 ../input_and_update_files/input1.txt ../input_and_update_files/update1.txt ../backup.txt ../allData.txt`
-
-### 🐧 Linux / WSL2
-`./ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData`
+## 🔍 Simulation Logic
+The program follows the 8-step academic sequence: **Initialization -> Loading -> Backup -> Updates -> Failure -> Recovery -> Reconstruction -> Verification.**
 
 ---
 
-## 🔍 Χαρακτηριστικά
--   **RAID 1, 1E, 4, 5**: Πλήρης υποστήριξη.
--   **Bit-Level Parsing**: Διαβάζει '0'/'1' χαρακτήρες.
--   **Console Logs**: Εμφανίζει λεπτομερείς υπολογισμούς XOR κατά το update και την ανάκτηση (Recovery).
--   **8-Step Sequence**: Ακολουθεί πιστά τη ροή εργασίας της άσκησης.
-
----
-
-## ⚠️ Προσοχή
-Αν τα Windows μπλοκάρουν το `.exe` με μήνυμα **"Device Guard policy"**, μεταφερθείτε στο **WSL2** για την εκτέλεση.
+## ⚠️ Compatibility
+If you encounter **WDAC / Device Guard** blocks on Windows, compile and run the source using **WSL2 (Windows Subsystem for Linux)**.

@@ -3,47 +3,46 @@
 
 #include "disk.h"
 
-/* RAID Levels */
-#define RAID_1 1
-#define RAID_1E 12 /* RAID 1 Enhanced */
-#define RAID_4 4
-#define RAID_5 5
+/* RAID Levels Supported */
+#define RAID_1  1
+#define RAID_1E 2
+#define RAID_4  4
+#define RAID_5  5
 
-/* 
- * raid_init
- * Ανοίγει τους N δίσκους και τους αρχικοποιεί με '0'.
+/**
+ * Initialize all N disks for a given RAID level.
  */
 int raid_init(const char* raidx, int n, int size);
 
-/* 
- * raid_write_bit
- * Γράφει ένα bit στο RAID σύστημα σύμφωνα με τον αλγόριθμο.
+/**
+ * Write a data bit to the RAID system.
+ * raidx: RAID level name
+ * pos: Data bit position
+ * n: Number of disks
+ * blocksize: Stripe block size
+ * bit: Character '0' or '1'
+ * is_update: Flag to enable verbose output for bit updates
  */
 int raid_write_bit(const char* raidx, int pos, int n, int blocksize, char bit, int is_update);
 
-/* 
- * raid_read_bit
- * Διαβάζει ένα bit από το RAID σύστημα.
+/**
+ * Read a specific data bit from the RAID system.
  */
 char raid_read_bit(const char* raidx, int pos, int n, int blocksize);
 
-/* 
- * raid_recover
- * Ανάκτηση του κατεστραμμένου δίσκου.
+/**
+ * Recover a failed disk using the survivors.
  */
 void raid_recover(const char* raidx, int failed_id, int n, int size);
 
-/* 
- * raid_compare
- * Σύγκριση δύο αρχείων για 100% ομοιότητα.
+/**
+ * Compare two files for 100% similarity.
  */
 void raid_compare(const char* file1, const char* file2);
 
-/* 
- * raid_shutdown
- * Κλείνει όλους τους δίσκους.
+/**
+ * Close all active disk handles.
  */
 void raid_shutdown();
 
 #endif
-

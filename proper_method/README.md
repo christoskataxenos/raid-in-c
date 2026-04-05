@@ -1,18 +1,18 @@
 # RAID Simulator - Proper Method (Modular)
 
-Αυτός ο φάκελος περιέχει την σπονδυλωτή (Modular) υλοποίηση του προσομοιωτή RAID, χωρισμένη σε λειτουργικές ενότητες για μέγιστη καθαρότητα και δομή.
+This directory contains the modular implementation of the RAID simulator, separated into functional components for maximum clarity and structural integrity.
 
 ---
 
-## 📂 Αρχεία
--   **`main.c`**: Ορχήστρα των 8 βημάτων (CLI Parsing, Flow Control).
--   **`raid.c / raid.h`**: Λογική RAID (1, 1E, 4, 5) και XOR Parity Calculation.
--   **`disk.c / disk.h`**: Διαχείριση αρχείων δίσκων και Bit-Char I/O.
--   **`compile.bat`**: Αυτοματοποιημένη μεταγλώττιση για Windows.
+## 📂 File Structure
+-   **`main.c`**: Orchestration of the 8-step simulation workflow (CLI Parsing, Flow Control).
+-   **`raid.c / raid.h`**: RAID Logic implementation (1, 1E, 4, 5) and XOR Parity calculation.
+-   **`disk.c / disk.h`**: Low-level disk file management and Bit-Character I/O.
+-   **`compile.bat`**: Automated compilation script for Windows.
 
 ---
 
-## 🛠️ Μεταγλώττιση (Compilation)
+## 🛠️ Compilation
 
 ### 💻 Windows (PowerShell)
 ```powershell
@@ -26,12 +26,12 @@ gcc main.c raid.c disk.c -o ergasia1.exe
 
 ---
 
-## 🚀 Εκτέλεση (Execution)
+## 🚀 Execution
 
 ### 💻 Windows
 `./ergasia1.exe RAIDX SIZE BLOCKSIZE N inputFile updates backup allData`
 
-**Παράδειγμα**:
+**Example**:
 `./ergasia1.exe RAID5 20 5 4 ../input_and_update_files/input2.txt ../input_and_update_files/update2.txt ../backup.txt ../allData.txt`
 
 ### 🐧 Linux / WSL2
@@ -39,12 +39,12 @@ gcc main.c raid.c disk.c -o ergasia1.exe
 
 ---
 
-## 🔎 Χαρακτηριστικά
--   **RAID 1, 1E, 4, 5**: Πλήρης υποστήριξη.
--   **Bit-Character Simulation**: Οι δίσκοι (`RAIDX_no.txt`) αποθηκεύουν '0'/'1' για εύκολη επαλήθευση.
--   **Advanced Logging**: Αναλυτική περιγραφή κάθε XOR πράξης στην κονσόλα.
+## 🔎 Features
+-   **RAID 1, 1E, 4, 5 Recovery**: Full support for data reconstruction.
+-   **Bit-Character Simulation**: Disks (`RAIDX_no.txt`) store '0'/'1' for easy bitwise verification.
+-   **Dual-Mode Input**: Supports both CLI arguments and Interactive user prompts.
 
 ---
 
-## ⚠️ Προσοχή
-Αν τα Windows μπλοκάρουν το `.exe` με μήνυμα **"Device Guard policy"**, μεταφερθείτε στο **WSL2** για την εκτέλεση.
+## ⚠️ Troubleshooting
+If Windows blocks the `.exe` with a **"Device Guard policy"** message, please switch to **WSL2** or a Linux terminal for execution.
