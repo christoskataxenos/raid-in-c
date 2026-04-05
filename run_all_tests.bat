@@ -1,8 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:top
 :: Set current directory to script location
 cd /d "%~dp0"
+cls
 
 echo.
 echo ============================================================
@@ -12,8 +14,9 @@ echo.
 echo Select the version you want to compile and test:
 echo [1] Academic Method (Single File)
 echo [2] Proper Method (Modular Files)
+echo [3] Exit
 echo.
-set /p choice="Enter your choice (1 or 2): "
+set /p choice="Enter your choice (1, 2 or 3): "
 
 if "%choice%"=="1" (
     set EXE=akadimaiki_method\ergasia1.exe
@@ -27,10 +30,13 @@ if "%choice%"=="1" (
     echo.
     echo [RUNNING] Compiling Proper Method...
     gcc !SRC! -o !EXE!
+) else if "%choice%"=="3" (
+    echo [EXIT] Goodbye!
+    exit /b
 ) else (
     echo [ERROR] Invalid choice.
     pause
-    exit /b
+    goto top
 )
 
 :: Check if compilation was successful
@@ -38,7 +44,7 @@ if %ERRORLEVEL% NEQ 0 (
     echo.
     echo [ERROR] Compilation failed! Please check your GCC installation.
     pause
-    exit /b
+    goto top
 )
 
 echo [SUCCESS] Compilation complete. Starting test scenarios...
@@ -84,6 +90,8 @@ echo 4 | "%EXE%" RAID5 300 10 5 input_and_update_files\input2.txt input_and_upda
 echo.
 
 echo ============================================================
-echo [TESTS COMPLETE] Check "100%% similarity" in each scenario.
+echo [TEST VOLUMES COMPLETE] Check "100%% similarity" in each scenario.
 echo ============================================================
+echo Returning to Main Menu...
 pause
+goto top
